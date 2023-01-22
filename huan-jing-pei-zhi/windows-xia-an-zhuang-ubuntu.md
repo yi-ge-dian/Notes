@@ -14,7 +14,7 @@ sudo reboot
 
 * 虚拟机改代理，前面的数字为主机 ipconfig 下的 ip
 
-<figure><img src=".gitbook/assets/image-20221130190231790.png" alt=""><figcaption><p>修改虚拟机代理</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image-20221130190231790.png" alt=""><figcaption><p>修改虚拟机代理</p></figcaption></figure>
 
 * 虚拟机终端代理命令
 
