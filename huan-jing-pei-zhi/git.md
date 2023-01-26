@@ -20,3 +20,10 @@ git config --global user.email "1085266008@qq.com"
 Get-Content $ewnv:USERPROFILE\.ssh\id_rsa.pub | ssh dongwenlong@192.168.140.128 "cat >> .ssh/authorized_keys" 
 ```
 {% endcode %}
+
+* git 远程分支回滚
+
+```bash
+git reset --hard xxxx(commit-id)
+git push -f origin master(branch-name) 
+```
