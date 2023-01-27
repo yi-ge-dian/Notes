@@ -2,9 +2,8 @@
 
 * 生成密钥的命令
 
-```bash
-ssh-keygen -t rsa -C "1085266008@qq.com"
-```
+<pre class="language-bash"><code class="lang-bash"><strong>ssh-keygen -t rsa -C "1085266008@qq.com"
+</strong></code></pre>
 
 * 设置邮箱和用户名
 
