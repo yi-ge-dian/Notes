@@ -144,7 +144,20 @@ for _, entry := range toSendEntries {
 
 ### 接口模块-RawNode
 
+RawNode 是为上层应用提供的接口，它包含了 raft.Raft 并且提供了一些函数如 Rawnode.Tick() 和 Rawnode.Step() ，并且还提供了 RawNode.Proposal() 来让上层应用附加新的raft日志。
 
+在外面调用RawNode的整个流程大概就是这样的：
+
+```go
+if !rawnode.HasReady(){
+    return 
+}
+ready := rawnode.Ready()
+// upper system use ready 
+rawnode.Advance()
+```
+
+// todo 可能快照有关，等pro2 和 pro3 lab全做完再更新代码层级的东西，现在就记录一下坑点。
 
 <details>
 
