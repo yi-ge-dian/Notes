@@ -38,7 +38,7 @@ func KeyWithCF(cf string, key []byte) []byte {
 
 该项目的架构图如下：
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption><p>架构图</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (2).png" alt=""><figcaption><p>架构图</p></figcaption></figure>
 
 ### StandAloneStorage
 
@@ -68,25 +68,6 @@ type StandAloneStorage struct {
    db *badger.DB
 }
 ```
-
-{% hint style="info" %}
-题外话，badgerDB 有什么厉害的地方，为什么要用它，而不用其他的数据库。
-{% endhint %}
-
-这里有两篇文章关于 bardgerDB 的讲解。
-
-* [badger 简介](http://note.iawen.com/note/graph/badger\_base)
-* [badger 一个高性能的LSM K/V store](https://colobu.com/2017/10/11/badger-a-performant-k-v-store/)
-
-> 简单来说，Badger 是为 Dgraph 而生的, 是 Dgraph 底层数据存储引擎。
->
-> Dgraph 是开源的，可扩展的，分布式的，低延迟图形数据库，采用 Go 语言书写。Dgraph 开始的时候，的确采用的是 RocksDB，但RocksDB 是 C++语言写的，使用时需要通过 Go 调用 Cgo。而 Cgo中又有一些缺点：
->
-> * Go profiler 无法分析和监测 Cgo 代码段里的问题, 所有工具链都不起作用
-> * 当涉及到 Cgo 时, 轻量级的 goroutine 会变成昂贵的 pthreadCgo
-> * 造成了内存泄漏
->
-> 于是着手进行了 BadgerDB 这个底层存储引擎的开发，并进行对 SSD 的优化。并于 2016 年发表了论文：[WiscKey: Separating Keys from Values in SSD-conscious Storage](https://www.usenix.org/system/files/conference/fast16/fast16-papers-lu.pdf)
 
 #### **Reader**
 
@@ -212,3 +193,27 @@ func (server *Server) RawScan(_ context.Context, req *kvrpcpb.RawScanRequest) (*
 ## 通过
 
 <figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption><p>PASS</p></figcaption></figure>
+
+<details>
+
+<summary>badgerDB</summary>
+
+### badgerDB 有什么厉害的地方，为什么要用它，而不用其他的数据库。
+
+这里有两篇文章关于 bardgerDB 的讲解。
+
+* [badger 简介](http://note.iawen.com/note/graph/badger\_base)
+* [badger 一个高性能的LSM K/V store](https://colobu.com/2017/10/11/badger-a-performant-k-v-store/)
+
+简单来说，Badger 是为 Dgraph 而生的, 是 Dgraph 底层数据存储引擎。
+
+Dgraph 是开源的，可扩展的，分布式的，低延迟图形数据库，采用 Go 语言书写。Dgraph 开始的时候，的确采用的是 RocksDB，但RocksDB 是 C++语言写的，使用时需要通过 Go 调用 Cgo。而 Cgo中又有一些缺点：
+
+* Go profiler 无法分析和监测 Cgo 代码段里的问题, 所有工具链都不起作用
+* 当涉及到 Cgo 时, 轻量级的 goroutine 会变成昂贵的 pthreadCgo
+* 造成了内存泄漏
+
+于是着手进行了 BadgerDB 这个底层存储引擎的开发，并进行对 SSD 的优化。并于 2016 年发表了论文：[WiscKey: Separating Keys from Values in SSD-conscious Storage](https://www.usenix.org/system/files/conference/fast16/fast16-papers-lu.pdf)
+
+</details>
+
