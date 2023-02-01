@@ -167,7 +167,7 @@ rawnode.Advance()
 
 在raft论文中有这样一种情况：
 
-<img src="../../.gitbook/assets/image.png" alt="为什么一个 leader 不能提交之前任期的日志条目" data-size="original">
+<img src="../../.gitbook/assets/image (2).png" alt="为什么一个 leader 不能提交之前任期的日志条目" data-size="original">
 
 * a) S1 是 Term2 的 Leader，将 LogEntry 部分复制到 S1 和 S2 的 2 号位置，然后 Crash
 * b) S5 被 S3、S4 和 S5 选为Term3 的 Leader，并只写入一条 LogEntry 到本地，然后Crash

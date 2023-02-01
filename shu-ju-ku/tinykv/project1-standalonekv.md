@@ -38,7 +38,7 @@ func KeyWithCF(cf string, key []byte) []byte {
 
 该项目的架构图如下：
 
-<figure><img src="../../.gitbook/assets/image (2).png" alt=""><figcaption><p>架构图</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (2) (1).png" alt=""><figcaption><p>架构图</p></figcaption></figure>
 
 ### StandAloneStorage
 
