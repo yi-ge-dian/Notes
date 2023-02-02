@@ -14,13 +14,15 @@
 
 <figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption><p>Tiny架构图</p></figcaption></figure>
 
-* `Store`：每一个节点叫做一个 store，也就是一个节点上面只有一个 Store。代码里面叫 RaftStore，后面统一使用 RaftStore 代称。
-* `Peer`：一个 RaftStore 里面会包含多个 peer，一个 RaftStore 里面的所有 peer 公用同一个底层存储，也就是多个 peer 公用同一个 badger 实例。
-* `Region`：一个 Region 叫做一个 Raft group，一个 region 包含多个 peer，这些 peer 散落在不同的 RaftStore 上，Region 处理的是某一个范围的数据。
+* `Store`：图中也称为 node，在代码中是 RaftStore。
+* `Peer`：即图中每一个不同颜色的方块，在一个 Store 中，所有的 peer 公用一个底层存储，在代码中是 PeerStorage
+* `Region`：即图中所有相同颜色所串连起来的集合，也称为 Raft Group，
 
 {% hint style="info" %}
-一个 Region 在一个 RaftStore 上最多只有一个 peer。
-
-因为一个 region 里面所有 peer 的数据是一致的，如果在同一个 RaftStore 上面有两个一样的 peer，则会毫无意义，不能增加容灾性。
+* 一个 store 可以有多个 Region，每个 Region 之间的 key space 不重叠。（如 Region1 负责存储的 key 为 A-C，Region2 负责存储的 key 为 D-E）
+* 一个 store 上可以有多个 Peer，每个 Peer 对应一个 Region。
+* 一个 Region 可以跨越多个 store，可以由多个 Peer 组成
 {% endhint %}
+
+> 但在 Project2 中一个 node 只有一个 Peer，一个集群也只有一个 Region。
 
