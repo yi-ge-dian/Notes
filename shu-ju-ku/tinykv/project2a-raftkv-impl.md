@@ -1,40 +1,8 @@
-# Project2-RaftKV-A
+# Project2A-RaftKV-Impl
 
-## 项目要求
+## 框架
 
-项目文档：[https://github.com/talent-plan/tinykv/blob/course/doc/project2-RaftKV.md](https://github.com/talent-plan/tinykv/blob/course/doc/project2-RaftKV.md)
-
-该项目要求我们实现一个基于 raft 的高可用 kv 服务器。主要有三个部分：
-
-1. 实现基本的 Raft 算法
-2. 在 Raft 之上建立一个容错的 KV 服务器
-3. 增加对 raftlog GC 和快照的支持
-
-第一部分就是 2A 所要完成的事情。2A 所要完成的又有三个方面。
-
-1. 领导选举
-2. 日志复制
-3. RawNode接口
-
-前两方面绝大多数都来自于 [Raft论文](https://raft.github.io/raft.pdf) 原文。关于 Raft 论文方面的讲解资料很多，本文档不再赘述。
-
-这是来自于官方的一些提示：
-
-{% hint style="info" %}
-* 在 <mark style="background-color:blue;">raft.Raft</mark>、<mark style="background-color:blue;">raft.RaftLog</mark>、<mark style="background-color:blue;">raft.RawNode</mark> 和 <mark style="background-color:blue;">eraftpb.proto</mark> 上添加任何你需要的状态。
-* 测试文件假设，第一次启动的 Raft 应该有 term 0。
-* 测试文件假设，新当选的领导应该在其任期内附加一个 noop 日志项。
-* 测试文件假设，一旦领导者推进其 commit index，它将通过 <mark style="background-color:blue;">MessageType\_MsgAppend</mark> 消息广播提交索引。
-* 测试文件假设，没有为本地消息：<mark style="background-color:blue;">MessageType\_MsgHup</mark>、<mark style="background-color:blue;">MessageType\_MsgBeat</mark> 和 <mark style="background-color:blue;">MessageType\_MsgPropose</mark> 设置 term。
-* 在领导者和非领导者之间，追加的日志项是相当不同的，有不同的来源、检查和处理，要注意这一点。
-* 不要忘了选举超时在 peers 之间应该是不同的。
-* <mark style="background-color:blue;">rawnode.go</mark> 中的一些封装函数可以用 <mark style="background-color:blue;">raft.Step(local message)</mark> 实现。
-* 当启动一个新的 raft 时，从 <mark style="background-color:blue;">Storage</mark> 中获取最后的稳定状态来初始化 <mark style="background-color:blue;">raft.Raft</mark> 和 <mark style="background-color:blue;">raft.RaftLog</mark>。
-{% endhint %}
-
-## 如何实现
-
-本次实验有三个部分，但分开讲解可能会损失一定的关联性，所以还是从整体结构上来说明这个实验。项目的结构如下：
+项目的结构如下：
 
 <figure><img src="../../.gitbook/assets/image-20230127204221703.png" alt=""><figcaption><p>项目架构</p></figcaption></figure>
 
