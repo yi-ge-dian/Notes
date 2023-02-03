@@ -1,8 +1,6 @@
-# Project1-StandaloneKV
+# Project1-StandaloneKV-Impl
 
-## 项目要求
-
-项目文档：[https://github.com/talent-plan/tinykv/blob/course/doc/project1-StandaloneKV.md](https://github.com/talent-plan/tinykv/blob/course/doc/project1-StandaloneKV.md)
+## 框架
 
 该项目需要基于 **badgerDB** 实现一个单机的、支持 Column Family 的 KV存储 [gRPC](https://grpc.io/docs/guides/) 服务。[Column family](https://en.wikipedia.org/wiki/Standard\_column\_family)（下文将缩写为 CF）是一个类似于键命名空间的术语，即同一键在不同列族中的值是不一样的。
 
@@ -20,27 +18,34 @@ func KeyWithCF(cf string, key []byte) []byte {
 
 例如默认的 CF 为 "default"，那么该 CF 下的名为 "apple" 的 Key，实际存储为 "default\_apple" 这个字符串。可以简单地将多个列族视为独立的小型数据库。它是用来支持 project 4 中的事务模型的，现在还用不到，感兴趣的可以来看这篇文章：[Percolator](https://tidb.net/blog/b6d840f2?utm\_source=tidb-community\&utm\_medium=referral\&utm\_campaign=repost)
 
-该项目有两大部分：
+<details>
 
-1. 实现一个单机的存储引擎。
-2. 实现原始键/值服务处理程序。
+<summary>badgerDB</summary>
 
-这是来自于官方的一些提示：
+### badgerDB 有什么厉害的地方，为什么要用它，而不用其他的数据库。
 
-{% hint style="info" %}
-* 你应该使用 [badger.Txn](https://godoc.org/github.com/dgraph-io/badger#Txn) 来实现 <mark style="background-color:blue;">Reader</mark> 函数，因为 badger 提供的事务处理程序可以提供键和值的一致快照。
-* Badger 没有给出对列族的支持。 engine\_util 包（<mark style="background-color:blue;">kv/util/engine\_util</mark>）通过给键添加前缀来模拟列族。例如，一个属于特定列族 cf 的 `key` 被存储为 <mark style="background-color:blue;">${cf}\_${key}</mark>。它封装了 <mark style="background-color:blue;">badger</mark> 以提供对 CF 的操作，还提供了许多有用的辅助函数。所以你应该通过 <mark style="background-color:blue;">engine\_util</mark> 提供的方法进行所有读写操作。请阅读 <mark style="background-color:blue;">util/engine\_util/doc.go</mark> 以了解更多。
-* TinyKV fork 了 <mark style="background-color:blue;">badger</mark> 原始版本，并进行了一些修正，所以需要使用 <mark style="background-color:blue;">github.com/Connor1996/badger</mark> 而不是 <mark style="background-color:blue;">github.com/dgraph-io/badger</mark>。
-* 别忘了为 <mark style="background-color:blue;">badger.Txn</mark> 调用 <mark style="background-color:blue;">Discard()</mark>，并在丢弃前关闭所有迭代器。
-{% endhint %}
+这里有两篇文章关于 bardgerDB 的讲解。
 
-## 如何实现
+* [badger 简介](http://note.iawen.com/note/graph/badger\_base)
+* [badger 一个高性能的LSM K/V store](https://colobu.com/2017/10/11/badger-a-performant-k-v-store/)
+
+简单来说，Badger 是为 Dgraph 而生的, 是 Dgraph 底层数据存储引擎。
+
+Dgraph 是开源的，可扩展的，分布式的，低延迟图形数据库，采用 Go 语言书写。Dgraph 开始的时候，的确采用的是 RocksDB，但RocksDB 是 C++语言写的，使用时需要通过 Go 调用 Cgo。而 Cgo中又有一些缺点：
+
+* Go profiler 无法分析和监测 Cgo 代码段里的问题, 所有工具链都不起作用
+* 当涉及到 Cgo 时, 轻量级的 goroutine 会变成昂贵的 pthreadCgo
+* 造成了内存泄漏
+
+于是着手进行了 BadgerDB 这个底层存储引擎的开发，并进行对 SSD 的优化。并于 2016 年发表了论文：[WiscKey: Separating Keys from Values in SSD-conscious Storage](https://www.usenix.org/system/files/conference/fast16/fast16-papers-lu.pdf)
+
+</details>
 
 该项目的架构图如下：
 
 <figure><img src="../../.gitbook/assets/image (2) (1).png" alt=""><figcaption><p>架构图</p></figcaption></figure>
 
-### StandAloneStorage
+## StandAloneStorage
 
 1. Server 结构体包含了 storage 接口，需要为 StandAloneStorage 实现 Storage 的所有接口。
 
@@ -69,7 +74,7 @@ type StandAloneStorage struct {
 }
 ```
 
-#### **Reader**
+### **Reader**
 
 1. 接下来就可以完成 StandAloneStorage 的书写。构造函数，缺少参数补充即可。Start函数，没什么可做的。Stop 函数关闭数据库。Reader 函数，需要我们返回一个实现了 StorageReader 接口的 Reader，这里就叫 StandAloneStorageReader。Write 函数需要对传过来的数据进行处理。
 2. StorageReader 接口如下：
@@ -99,7 +104,7 @@ func (db *DB) NewTransaction(update bool) *Txn
 
 update 为真表示 Put/Delete 两个写操作，为假表示 Get/Scan 两个读操作。这里直接传入 false 即可。
 
-#### **Write**
+### **Write**
 
 ```go
 type Modify struct {
@@ -133,7 +138,7 @@ for _, v := range batch {
 
 但其实，engine\_util 下面的这两个函数 PutCF 和 DeleteCF 在底层也是调用了事务。
 
-### Server
+## Server
 
 1. 这一部分需要完成四个函数 RawGet、RawPut、RawDelete、RawScan。同时利用上面完成的 Reader 结构体 和 Write 函数。
 2. Get 和 Scan 需要使用 Reader。Put 和 Delete 需要使用 Write。
@@ -193,27 +198,3 @@ func (server *Server) RawScan(_ context.Context, req *kvrpcpb.RawScanRequest) (*
 ## 通过
 
 <figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption><p>PASS</p></figcaption></figure>
-
-<details>
-
-<summary>badgerDB</summary>
-
-### badgerDB 有什么厉害的地方，为什么要用它，而不用其他的数据库。
-
-这里有两篇文章关于 bardgerDB 的讲解。
-
-* [badger 简介](http://note.iawen.com/note/graph/badger\_base)
-* [badger 一个高性能的LSM K/V store](https://colobu.com/2017/10/11/badger-a-performant-k-v-store/)
-
-简单来说，Badger 是为 Dgraph 而生的, 是 Dgraph 底层数据存储引擎。
-
-Dgraph 是开源的，可扩展的，分布式的，低延迟图形数据库，采用 Go 语言书写。Dgraph 开始的时候，的确采用的是 RocksDB，但RocksDB 是 C++语言写的，使用时需要通过 Go 调用 Cgo。而 Cgo中又有一些缺点：
-
-* Go profiler 无法分析和监测 Cgo 代码段里的问题, 所有工具链都不起作用
-* 当涉及到 Cgo 时, 轻量级的 goroutine 会变成昂贵的 pthreadCgo
-* 造成了内存泄漏
-
-于是着手进行了 BadgerDB 这个底层存储引擎的开发，并进行对 SSD 的优化。并于 2016 年发表了论文：[WiscKey: Separating Keys from Values in SSD-conscious Storage](https://www.usenix.org/system/files/conference/fast16/fast16-papers-lu.pdf)
-
-</details>
-
