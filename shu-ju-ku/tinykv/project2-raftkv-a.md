@@ -163,7 +163,7 @@ rawnode.Advance()
 
 <summary>Noop</summary>
 
-### 当一个节点成功当选 Leader 的时候，为什么需要发送一个 Noop？
+## 当一个节点成功当选 Leader 的时候，为什么需要发送一个 Noop？
 
 在raft论文中有这样一种情况：
 

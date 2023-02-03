@@ -22,8 +22,6 @@ func KeyWithCF(cf string, key []byte) []byte {
 
 <summary>badgerDB</summary>
 
-### badgerDB 有什么厉害的地方，为什么要用它，而不用其他的数据库。
-
 这里有两篇文章关于 bardgerDB 的讲解。
 
 * [badger 简介](http://note.iawen.com/note/graph/badger\_base)
@@ -197,4 +195,4 @@ func (server *Server) RawScan(_ context.Context, req *kvrpcpb.RawScanRequest) (*
 
 ## 通过
 
-<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption><p>PASS</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1).png" alt=""><figcaption><p>PASS</p></figcaption></figure>

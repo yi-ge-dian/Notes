@@ -12,7 +12,7 @@
 
 第二部分就是 2B 所要完成的部分。首先需要知道三个术语 Term，Peer，Region 的含义。图里面每一个彩色的小方格代表一个 peer。
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption><p>Tiny架构图</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption><p>Tiny架构图</p></figcaption></figure>
 
 * `Store`：图中也称为 node，在代码中是 RaftStore。
 * `Peer`：即图中每一个不同颜色的方块，在一个 Store 中，所有的 peer 公用一个底层存储，在代码中是 PeerStorage

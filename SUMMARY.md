@@ -8,7 +8,7 @@
   * [01 Git](ming-ling/01-git.md)
 * [🗳 数据库](shu-ju-ku/README.md)
   * [TinyKV](shu-ju-ku/tinykv/README.md)
-    * [Project1-StandaloneKV-CN](shu-ju-ku/tinykv/project1-standalonekv-cn.md)
+    * [Project1-StandaloneKV-CN](shu-ju-ku/tinykv/project1-standalonekv.md)
     * [Project1-StandaloneKV-Impl](shu-ju-ku/tinykv/project1-standalonekv-impl.md)
     * [Project2-RaftKV-A](shu-ju-ku/tinykv/project2-raftkv-a.md)
     * [Project2-RaftKV-B](shu-ju-ku/tinykv/project2-raftkv-b.md)
