@@ -195,4 +195,4 @@ func (server *Server) RawScan(_ context.Context, req *kvrpcpb.RawScanRequest) (*
 
 ## 通过
 
-<figure><img src="../../.gitbook/assets/image (1) (1).png" alt=""><figcaption><p>PASS</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption><p>PASS</p></figcaption></figure>

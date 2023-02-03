@@ -30,7 +30,7 @@ TinyKV 课程建立了一个具有 Raft 共识算法的键值存储系统。它�
 
 ### 代码结构
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption><p>TinyKV 代码结构</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption><p>TinyKV 代码结构</p></figcaption></figure>
 
 类似于 TiDB + TiKV + PD 这种将存储和计算分离的架构，TinyKV 只专注于分布式数据库系统的存储层。如果你对 SQL 层也感兴趣，请看  [TinySQL](https://github.com/tidb-incubator/tinysql)。除此之外，还有一个叫做TinyScheduler 的组件作为整个 TinyKV 集群的中心控制，它从 TinyKV 的心跳中收集信息。之后，TinyScheduler 可以生成调度任务并将任务分配给 TinyKV 的实例。所有的实例都通过RPC进行通信。
 

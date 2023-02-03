@@ -72,5 +72,60 @@ Raft 是一种共识算法，其设计理念是易于理解。你可以在 [Raft
 
 ## Part B
 
+在这一部分中，你将使用 Part A 中实现的 Raft 模块建立一个容错的 KV 存储服务。服务将是一个复制状态机，由几个使用 Raft 进行复制的 KV 服务器组成。KV 服务应该继续处理客户的请求，只要大多数的服务器是活的并且可以通信，尽管有其他的故障或网络分区发生。
 
+在 Project1 中，你已经实现了一个独立的 KV 服务器，所以你应该已经熟悉了 KV 服务器的 API 和 Storage 接口。
 
+在介绍代码之前，你需要先了解三个术语：`Store`、`Peer` 和 `Region`，它们定义在`proto/proto/metapb.proto` 中。
+
+* Store 代表 tinykv-server 的一个实例
+* Peer 代表运行在 Store 上的 Raft 节点
+* Region 是 Peer 的集合，也叫 Raft 组
+
+<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption><p>region 示意图</p></figcaption></figure>
+
+为了简单起见，对于 project2，一个 Store 上 只有一个 Peer，一个集群中只有一个 Region。所以你现在不需要考虑 Region 的范围。多个 Region 将在 project3 进一步引入。
+
+### 代码
+
+首先，你应该看看位于 `kv/storage/raft_storage/raft_server.go` 的 `RaftStorage` 代码，它也实现了 `Storage` 接口。与 `StandaloneStorage` 直接从底层引擎写入或读取不同，它首先将每个写入或读取请求发送到 Raft，然后在 Raft 提交请求后对底层引擎进行实际写入和读取。通过这种方式，它可以保持多个存储之间的一致性。
+
+`RaftStorage` 主要创建一个 `Raftstore` 来驱动 Raft。当调用 Reader 或 Write 函数时，它实际上是通过通道向 raftstore 发送一个定义在 `proto/proto/raft_cmdpb.proto` 中的 `RaftCmdRequest`，其中有四种基本的命令类型（Get/Put/Delete/Snap）（该通道的接收者是 `raftWorker` 的 `raftCh`），在 Raft 提交和应用该命令后返回响应。而 `Write` 和 `Read` 函数的 `kvrpc.Context` 参数现在很有用，它从客户端的角度携带了 Region 信息，并作为 `RaftCmdRequest` 的头传递。也许这些信息是错误的或陈旧的，所以 raftstore 需要检查它们并决定是否提出请求。
+
+然后，就来到了 TinyKV 的核心 —— raftstore。这个结构有点复杂，你可以阅读一下 TiKV 的参考资料，让你对这个设计有更好的了解。
+
+* [https://pingcap.com/blog-cn/the-design-and-implementation-of-multi-raft/#raftstore](https://pingcap.com/blog-cn/the-design-and-implementation-of-multi-raft/#raftstore) （中文）
+* [https://pingcap.com/blog/design-and-implementation-of-multi-raft/#raftstore](https://pingcap.com/blog/design-and-implementation-of-multi-raft/#raftstore) （英文）
+
+raftstore 的入口是 `Raftstore`，见 `kv/raftstore/raftstore.go`。它启动了一些 worker 来异步处理特定的任务，但大部分现在并不用，所以你可以直接忽略它们。你所需要关注的是 `raftWorker`。(kv/raftstore/raft\_worker.go)
+
+整个过程分为两部分：
+
+1. raft worker 轮询 `raftCh` 以获得消息，这些消息包括驱动 Raft 模块的基本 tick 和作为 Raft 日志项的 Raft 命令。
+2. 它从 Raft 模块获得并处理 ready，包括发送 raft 消息、持久化状态、将提交的日志项应用到状态机。一旦应用，将响应返回给客户。
+
+### 实现 PeerStorage
+
+peer storage 是通过 Part A 中的 `Storage` 接口进行交互，但是除了 raft 日志之外，peer storage 还管理着其他持久化的元数据，这对于重启后恢复到一致的状态机非常重要。此外，在 `proto/proto/raft_serverpb.proto` 中定义了三个重要状态。
+
+* RaftLocalState：用于存储当前 Raft hard state 和 Last Log Index。
+* RaftApplyState。用于存储 Raft applied 的 Last Log Index 和一些 truncated Log 信息。
+* RegionLocalState。用于存储 Region 信息和该 Store 上的 Peer State。Normal表示该 peer 是正常的，Tombstone表示该 peer 已从 Region 中移除，不能加入Raft 组。
+
+这些状态被存储在两个badger实例中：raftdb 和 kvdb。
+
+* raftdb 存储 raft 日志和 `RaftLocalState`。
+* kvdb 在不同的列族中存储键值数据，`RegionLocalState` 和 `RaftApplyState`。你可以把 kvdb 看作是Raft论文中提到的状态机。
+
+格式如下，在 `kv/raftstore/meta` 中提供了一些辅助函数，并通 `writebatch.SetMeta()` 将其保存到 badger。
+
+| Key                | KeyFormat                          | Value            | DB   |
+| ------------------ | ---------------------------------- | ---------------- | ---- |
+| raft\_log\_key     | 0x01 0x02 region\_id 0x01 log\_idx | Entry            | raft |
+| raft\_state\_key   | 0x01 0x02 region\_id 0x02          | RaftLocalState   | raft |
+| apply\_state\_key  | 0x01 0x02 region\_id 0x03          | RaftApplyState   | kv   |
+| region\_state\_key | 0x01 0x03 region\_id 0x01          | RegionLocalState | kv   |
+
+> 你可能想知道为什么 TinyKV 需要两个 badger 实例。实际上，它只能使用一个badger 来存储 Raft 日志和状态机数据。分成两个实例只是为了与TiKV的设计保持一致。
+
+这些元数据应该在 `PeerStorage` 中创建和更新。当创建 PeerStorage 时，见`kv/raftstore/peer_storage.go` 。它初始化这个 Peer 的 RaftLocalState、RaftApplyState，或者在重启的情况下从底层引擎获得之前的值。注意，RAFT\_INIT\_LOG\_TERM 和 RAFT\_INIT\_LOG\_INDEX 的值都是5（只要大于1），但不是0。之所以不设置为0，是为了区别于 peer 在更改 conf 后被动创建的情况。你现在可能还不太明白，所以只需记住它，细节将在 project3b 中描述，当你实现 conf change 时。
