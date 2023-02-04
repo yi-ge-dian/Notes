@@ -128,4 +128,83 @@ peer storage 是通过 Part A 中的 `Storage` 接口进行交互，但是除了
 
 > 你可能想知道为什么 TinyKV 需要两个 badger 实例。实际上，它只能使用一个badger 来存储 Raft 日志和状态机数据。分成两个实例只是为了与TiKV的设计保持一致。
 
-这些元数据应该在 `PeerStorage` 中创建和更新。当创建 PeerStorage 时，见`kv/raftstore/peer_storage.go` 。它初始化这个 Peer 的 RaftLocalState、RaftApplyState，或者在重启的情况下从底层引擎获得之前的值。注意，RAFT\_INIT\_LOG\_TERM 和 RAFT\_INIT\_LOG\_INDEX 的值都是5（只要大于1），但不是0。之所以不设置为0，是为了区别于 peer 在更改 conf 后被动创建的情况。你现在可能还不太明白，所以只需记住它，细节将在 project3b 中描述，当你实现 conf change 时。
+这些元数据应该在 `PeerStorage` 中创建和更新。当创建 PeerStorage 时，见`kv/raftstore/peer_storage.go` 。它初始化这个 Peer 的 RaftLocalState、RaftApplyState，或者在重启的情况下从底层引擎获得之前的值。注意，RAFT\_INIT\_LOG\_TERM 和 RAFT\_INIT\_LOG\_INDEX 的值都是5（至少大于1），但不是0。之所以不设置为0，是为了区别于 peer 在更改 conf 后被动创建的情况。你现在可能还不太明白，所以只需记住它，细节将在当你实现配置变更时的 project3b 中描述。
+
+在这部分你需要实现的代码只有一个函数 `PeerStorage.SaveReadyState`，这个函数的作用是将 `raft.Ready` 中的数据保存到 badger 中，包括追加日志和保存 Raft 硬状态。
+
+要追加日志，只需将 `raft.Ready.Entries` 处的所有日志保存到 raftdb，并删除之前追加的任何日志，这些日志永远不会被提交。同时，更新 peer storage 的 `RaftLocalState` 并将其保存到 raftdb。
+
+保存硬状态也很容易，只要更新 peer storage 的 `RaftLocalState.HardState` 并保存到 raftdb。\
+
+
+{% hint style="info" %}
+* 使用 <mark style="background-color:blue;">WriteBatch</mark> 来一次性保存这些状态。&#x20;
+* 查看 <mark style="background-color:blue;">peer\_storage.go</mark> 的其他函数，了解如何读写这些状态。&#x20;
+* 设置环境变量 LOG\_LEVEL=debug，可能有助于你的调试并查看所有可用的日志[级别](https://github.com/talent-plan/tinykv/blob/course/log/log.go)。
+*
+{% endhint %}
+
+### 实现Raft ready 过程
+
+在 Project2 的 PartA ，你已经建立了一个基于 tick 的 Raft 模块。现在你需要编写驱动它的外部流程。大部分代码已经在 `kv/raftstore/peer_msg_handler.go` 和 `kv/raftstore/peer.go` 下实现。所以你需要学习这些代码，完成 `proposalRaftCommand` 和 `HandleRaftReady` 的逻辑。下面是对该框架的一些解释。
+
+Raft `RawNode` 已经用 `PeerStorage` 创建并存储在 `peer` 中。在 raft Worker 中，你可以看到它接收了 `peer` 并通过 `peerMsgHandler` 将其包装起来。`peerMsgHandler` 主要有两个功能：一个是 `HandleMsgs`，另一个是 `HandleRaftReady`。
+
+`HandleMsg` 处理所有从 raftCh 收到的消息，包括调用 `RawNode.Tick()` 驱动 Raft 的`MsgTypeTick`、包装来自客户端请求的 `MsgTypeRaftCmd` 和 Raft peer 之间传送的`MsgTypeRaftMessage`。所有的消息类型都在 `kv/raftstore/message/msg.go` 中定义。你可以查看它的细节，其中一些将在接下来的部分中使用。
+
+在消息被处理后，Raft 节点应该有一些状态更新。所以 `HandleRaftReady` 应该从 Raft 模块获得Ready，并做相应的动作，如持久化日志，应用已提交的日志，并通过网络向其他 peer 发送 raft 消息。
+
+在一个伪代码中，raftstore 像这样使用 Raft：
+
+```go
+for {
+  select {
+  case <-s.Ticker:
+    Node.Tick()
+  default:
+    if Node.HasReady() {
+      rd := Node.Ready()
+      saveToStorage(rd.State, rd.Entries, rd.Snapshot)
+      send(rd.Messages)
+      for _, entry := range rd.CommittedEntries {
+        process(entry)
+      }
+      s.Node.Advance(rd)
+    }
+}
+```
+
+在这之后，整个读或写的过程将是这样的：
+
+* 客户端调用 RPC RawGet/RawPut/RawDelete/RawScan
+* RPC 处理程序调用 `RaftStorage` 的相关方法
+* `RaftStorage` 向 raftstore 发送一个 Raft 命令请求，并等待响应
+* `RaftStore` 将 Raft 命令请求作为 Raft Log 提出。
+* Raft 模块添加该日志，并由 `PeerStorage` 持久化。
+* Raft 模块提交该日志
+* Raft Worker 在处理 Raft Ready 时执行 Raft 命令，并通过 callback 返回响应。
+* `RaftStorage` 接收来自 callback 的响应，并返回给 RPC 处理程序。
+* RPC 处理程序进行一些操作并将 RPC 响应返回给客户。
+
+你应该运行 `make project2b` 来通过所有的测试。整个测试正在运行一个模拟集群，包括多个 TinyKV 实例和一个模拟网络。它执行一些读和写的操作，并检查返回值是否符合预期。
+
+要注意的是，错误处理是通过测试的一个重要部分。可能注意到在 `proto/proto/errorpb.proto` 中定义了一些错误，错误是 gRPC 响应的一个字段。同时，在 `kv/raftstore/util/error.go` 中定义了实现 error 接口的相应错误，所以你可以把它们作为函数的返回值。
+
+这些错误主要与 Region 有关。所以它也是 `RaftCmdResponse` 的 `RaftResponseHeader` 的一个成员。当提出一个请求或应用一个命令时，可能会出现一些错误。如果是这样，你应该返回带有错误的 Raft 命令响应，然后错误将被进一步传递给 gRPC 响应。你可以使用 `kv/raftstore/cmd_resp.go` 中提供的 `BindErrResp`，在返回带有错误的响应时，将这些错误转换成 `errorpb.proto` 中定义的错误。
+
+在这个阶段，你可以考虑这些错误，其他的将在 Project3 中处理。
+
+* ErrNotLeader：raft 命令是在一个 Follower 上提出的。所以用它来让客户端尝试其他 peer。
+* ErrStaleCommand：可能由于领导者的变化，一些日志没有被提交，就被新的领导者的日志所覆盖。但是客户端并不知道，仍然在等待响应。所以你应该返回这个命令，让客户端知道并再次重试该命令。
+
+{% hint style="info" %}
+* <mark style="background-color:blue;">PeerStorage</mark> 实现了 Raft 模块的 <mark style="background-color:blue;">Storage</mark> 接口，你应该使用提供的 <mark style="background-color:blue;">SaveRaftReady()</mark> 方法来持久化Raft的相关状态。
+* 使用 <mark style="background-color:blue;">engine\_util</mark> 中的 <mark style="background-color:blue;">WriteBatch</mark> 来进行原子化的多次写入，例如，你需要确保在一个写入批次中应用提交的日志并更新应用的索引。
+* 使用 <mark style="background-color:blue;">Transport</mark> 向其他 peer 发送 raft 消息，它在 <mark style="background-color:blue;">GlobalContext</mark> 中。
+* 如果不是多数人的一部分，并且没有最新的数据，服务器不应该完成 get RPC。你可以直接把 get 操作放到 Raft 日志中，或者实现 Raft 论文第8节中描述的对只读操作的优化。
+* 在应用日志条目时，不要忘记更新和持久化应用状态。
+* 你可以像TiKV那样以异步的方式应用已提交的 Raft 日志条目。这不是必须的，虽然对提高性能是一个很大的提升。
+* 提出命令时记录命令的 callback，应用后返回 callback。
+* 对于 snap 命令的响应，应该明确设置 badger Txn 为 callback。
+* 在 2A 之后，有些测试你可能需要多次运行以发现bug
+{% endhint %}

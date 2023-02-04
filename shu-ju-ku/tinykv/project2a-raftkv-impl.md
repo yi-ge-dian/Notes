@@ -6,7 +6,7 @@
 
 <figure><img src="../../.gitbook/assets/image-20230127204221703.png" alt=""><figcaption><p>项目架构</p></figcaption></figure>
 
-### 日志模块-RaftLog
+## 日志模块-RaftLog
 
 ```go
 type RaftLog struct {
@@ -91,7 +91,7 @@ func newLog(storage Storage) *RaftLog {
 
 6. todo：感觉有需要快照的一部分。
 
-### 一致性模块-Raft
+## 一致性模块-Raft
 
 1. 投票拒绝人数超过一半直接变为follower
 2. 一个节点发起选举，直接变为leader
@@ -110,7 +110,7 @@ for _, entry := range toSendEntries {
 }
 ```
 
-### 接口模块-RawNode
+## 接口模块-RawNode
 
 RawNode 是为上层应用提供的接口，它包含了 raft.Raft 并且提供了一些函数如 Rawnode.Tick() 和 Rawnode.Step() ，并且还提供了 RawNode.Proposal() 来让上层应用附加新的raft日志。
 
