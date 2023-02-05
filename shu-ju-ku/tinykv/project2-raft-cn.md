@@ -141,7 +141,6 @@ peer storage 是通过 Part A 中的 `Storage` 接口进行交互，但是除了
 * 使用 <mark style="background-color:blue;">WriteBatch</mark> 来一次性保存这些状态。&#x20;
 * 查看 <mark style="background-color:blue;">peer\_storage.go</mark> 的其他函数，了解如何读写这些状态。&#x20;
 * 设置环境变量 LOG\_LEVEL=debug，可能有助于你的调试并查看所有可用的日志[级别](https://github.com/talent-plan/tinykv/blob/course/log/log.go)。
-*
 {% endhint %}
 
 ### 实现Raft ready 过程
