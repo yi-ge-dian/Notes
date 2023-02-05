@@ -82,7 +82,7 @@ Raft 是一种共识算法，其设计理念是易于理解。你可以在 [Raft
 * Peer 代表运行在 Store 上的 Raft 节点
 * Region 是 Peer 的集合，也叫 Raft 组
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption><p>region 示意图</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (4).png" alt=""><figcaption><p>region 示意图</p></figcaption></figure>
 
 为了简单起见，对于 project2，一个 Store 上 只有一个 Peer，一个集群中只有一个 Region。所以你现在不需要考虑 Region 的范围。多个 Region 将在 project3 进一步引入。
 
