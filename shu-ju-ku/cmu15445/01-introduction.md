@@ -116,7 +116,7 @@ Schema：模式是对基于数据模型的特定数据集合的描述。
 
 外键 (foreign keys) 指定一个关系中的**属性**必须映射到另一个关系中的**元组**。比如 artist\_id 的 123这个属性值 映射到了Artist 的 123 这个元组。
 
-<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption><p>外键</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1).png" alt=""><figcaption><p>外键</p></figcaption></figure>
 
 {% hint style="info" %}
 定义的说法有些晦涩，可以采用下面的方法来理解：
@@ -170,7 +170,7 @@ Schema：模式是对基于数据模型的特定数据集合的描述。
 
 现在比较火的是文档型/面向对象型数据库，它们像这样存储：
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 ## 8. Conclusion
 

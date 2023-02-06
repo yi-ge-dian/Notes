@@ -204,6 +204,33 @@ for {
 * 在应用日志条目时，不要忘记更新和持久化应用状态。
 * 你可以像TiKV那样以异步的方式应用已提交的 Raft 日志条目。这不是必须的，虽然对提高性能是一个很大的提升。
 * 提出命令时记录命令的 callback，应用后返回 callback。
-* 对于 snap 命令的响应，应该明确设置 badger Txn 为 callback。
+* 对于 snap 命令的响应，应该明确设置 badger 的 Txn 为 callback。
 * 在 2A 之后，有些测试你可能需要多次运行以发现bug
 {% endhint %}
+
+## Part C
+
+就目前你的代码而言，对于一个长期运行的服务器来说，永远记住完整的 Raft 日志是不现实的。相反，服务器会检查 Raft 日志的数量，并不时地丢弃超过阈值的日志条目。
+
+在这一部分，你将在上述两部分实现的基础上实现快照处理。一般来说，Snapshot 只是一个像AppendEntries 一样的 raft message，用来复制数据给 follower，不同的是它的大小，Snapshot 包含了某个时间点的整个状态机数据，一次性建立和发送这么大的消息会消耗很多资源和时间，可能会阻碍其他raft message 的处理，为了减轻这个问题，Snapshot 消息会使用独立的连接，把数据分成块来传输。这就是为什么 TinyKV 服务有一个 snapshot RPC API 的原因。如果你对发送和接收的细节感兴趣，可以查看 `snapRunner` 和参考资料 [https://pingcap.com/blog-cn/tikv-source-code-reading-10/](https://pingcap.com/blog-cn/tikv-source-code-reading-10/)
+
+### 代码
+
+你所需要改变的是基于 A 部分和 B 部分中写的代码。
+
+### 在 Raft 实现
+
+虽然我们需要对快照信息进行一些不同的处理，但从 raft 算法的角度来看，应该没有什么区别。请看 proto 文件中 `eraftpb.Snapshot` 的定义，`eraftpb.Snapshot` 上的 `data` 字段并不代表实际的状态机数据，而是一些 metadata 被上层应用使用，你可以暂时忽略。当领导者需要向跟随者发送快照消息时，它可以调用 `Storage.Snapshot()` 来获得 `eraftpb.Snapshot`，然后像其他 raft 消息一样发送快照消息。状态机数据如何实际建立和发送是由 raftstore 实现的，它将在下一步介绍。你可以认为，一旦`Storage.Snapshot()` 成功返回，raft 领导者就可以安全地将快照消息发送给跟随者，跟随者应该调用handleSnapshot 来处理它，即只是从消息中的 `eraftpb.SnapshotMetadata` 恢复 raft 的内部状态，如任期、提交索引和成员信息等，之后，快照处理的过程就结束了。
+
+### 在 raftstore 实现
+
+在这一步，你需要学习 raftstore 的另外两个 worker—— raftlog-gc worker 和 region worker。
+
+Raftstore 根据配置 `RaftLogGcCountLimit` 检查它是否需要不时地进行 gc log，见`onRaftGcLogTick()`。如果是，它将提出一个raft Admin Command `CompactLogRequest`，它被包装在 RaftCmdRequest 中，就像 project2B 部分中实现的四种基本命令类型（Get/Put/Delete/Snap）。但与 Get/Put/Delete/Snap 命令写或读状态机数据不同，`CompactLogRequest` 会修改 metadata，即更新 `RaftApplyState` 中的 `RaftTruncatedState`。之后，你应该通过 `ScheduleCompactLog` 给raftlog-gc worker 安排一个任务。Raftlog-gc worker 将以异步方式进行实际的日志删除工作。
+
+然后，由于日志压缩，Raft 模块可能需要发送一个快照。`PeerStorage` 实现了 `Storage.Snapshot()`。TinyKV 生成快照并在 region worker 中应用快照。当调用 `Snapshot()` 时，它实际上是向 region worker 发送一个任务 `RegionTaskGen`。region worker的消息处理程序位于`kv/raftstore/runner/region_task.go` 中。它扫描底层引擎以生成快照，并通过通道发送快照元数据。在下一次 Raft 调用 Snapshot 时，它会检查快照生成是否完成。如果是，Raft 应该将快照信息发送给其他 peers，而快照的发送和接收工作则由 `kv/storage/raft_storage/snap_runner.go` 处理。你不需要深入了解这些细节，只需要知道快照信息在收到后将由 `onRaftMsg` 处理。
+
+然后，快照将反映在下一个 Raft ready 中，所以你应该做的任务是修改 Raft ready 流程以处理快照的情况。当你确定要应用快照时，你可以更新 peer storage 的内存状态，如 `RaftLocalState`、`RaftApplyState`和 `RegionLocalState`。同时，不要忘记将这些状态持久化到 kvdb 和 raftdb 中，并从 kvdb 和 raftdb 中删除陈旧的状态。此外，你还需要将 `PeerStorage.snapState` 更新为`snap.SnapState_Applying`，并通过 `PeerStorage.regionSched` 将 `runner.RegionTaskApply` 任务发送给 region worker，并等待 region worker 完成。
+
+你应该运行 `make project2c` 来通过所有的测试。&#x20;
+

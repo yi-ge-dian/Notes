@@ -38,7 +38,7 @@
 
 启动的过程如下：
 
-<figure><img src="../../.gitbook/assets/image (1) (1).png" alt=""><figcaption><p>启动流程</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (1) (3).png" alt=""><figcaption><p>启动流程</p></figcaption></figure>
 
 ## Raft Store
 

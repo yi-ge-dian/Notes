@@ -15,3 +15,4 @@
     * [Project2B-RaftKV-Impl](shu-ju-ku/tinykv/project2b-raftkv-impl.md)
   * [CMU15445](shu-ju-ku/cmu15445/README.md)
     * [01-Introduction](shu-ju-ku/cmu15445/01-introduction.md)
+    * [02-Modern SQL](shu-ju-ku/cmu15445/02-modern-sql.md)
