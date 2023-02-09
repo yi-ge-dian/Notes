@@ -170,7 +170,7 @@ Schema：模式是对基于数据模型的特定数据集合的描述。
 
 现在比较火的是文档型/面向对象型数据库，它们像这样存储：
 
-<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (2).png" alt=""><figcaption></figcaption></figure>
 
 ## 8. Conclusion
 

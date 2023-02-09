@@ -32,7 +32,7 @@ SQL是不断发展的，关系代数基于 sets (unordered, no duplicates)。 SQ
 
 一个数据库例子：
 
-<figure><img src="../../.gitbook/assets/image.png" alt=""><figcaption><p>database example</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (6).png" alt=""><figcaption><p>database example</p></figcaption></figure>
 
 ```sql
 
