@@ -80,7 +80,7 @@ Raft 是一种共识算法，其设计理念是易于理解。你可以在 [Raft
 
 * Store 代表 tinykv-server 的一个实例
 * Peer 代表运行在 Store 上的 Raft 节点
-* Region 是 Peer 的集合，也叫 Raft 组
+* Region 是 Peer 的集合，也叫 Raft Group
 
 <figure><img src="../../.gitbook/assets/image (4).png" alt=""><figcaption><p>region 示意图</p></figcaption></figure>
 
