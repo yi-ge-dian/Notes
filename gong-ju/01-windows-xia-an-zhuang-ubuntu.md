@@ -1,4 +1,4 @@
-# Windows下安装Ubuntu
+# 01 Windows下安装Ubuntu
 
 1. 安装界面太小，按 alt+f7 加鼠标滚轮调动
 2. 换源
