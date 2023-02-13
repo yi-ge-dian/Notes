@@ -3,7 +3,7 @@ description: Just be simpler, Just be happier.
 coverY: 0
 ---
 
-# README
+# 👋 Welcome to here
 
 ## 一个点
 
@@ -11,14 +11,14 @@ coverY: 0
 
 💛💚💙💜💕💞💓💗💖💘💝❣❤
 
-## 教育
+## Education
 
-本科：电子科技大学，计算机与科学与技术
+Bachelor's Degree, UESTC，Computer Science and Technology&#x20;
 
-研究生：电子科技大学，分布式存储与计算（研一在读）
+Currently a first-year master's student in UESTC
 
-## 联系
+## Contact
 
-邮箱：1085266008@qq.com
+E-mail：1085266008@qq.com
 
 Github：[https://github.com/yi-ge-dian](https://github.com/yi-ge-dian)
