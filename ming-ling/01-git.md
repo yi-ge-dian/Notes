@@ -27,3 +27,9 @@ Get-Content $ewnv:USERPROFILE\.ssh\id_rsa.pub | ssh username@192.168.140.128 "ca
 git reset --hard xxxx(commit-id)
 git push -f origin master(branch-name) 
 ```
+
+5.  git 修改为
+
+    ```shell
+    git config --global core.autocrlf true
+    ```

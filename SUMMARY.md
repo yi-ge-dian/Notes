@@ -21,3 +21,4 @@
   * [02-Modern SQL](shu-ju-ku/cmu15445/02-modern-sql.md)
   * [hw01-SQL](database/cmu15445/hw01-sql.md)
   * [03-Storage 1](shu-ju-ku/cmu15445/03-storage-1.md)
+  * [从零开始搭建Hexo博客](database/cmu15445/cong-ling-kai-shi-da-jian-hexo-bo-ke.md)
