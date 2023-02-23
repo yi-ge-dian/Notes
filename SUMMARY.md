@@ -17,8 +17,6 @@
   * [Project2A-RaftKV-Impl](shu-ju-ku/tinykv/project2a-raftkv-impl.md)
   * [Project2B-RaftKV-Impl](shu-ju-ku/tinykv/project2b-raftkv-impl.md)
 * [CMU15445](shu-ju-ku/cmu15445/README.md)
-  * [01-Introduction](shu-ju-ku/cmu15445/01-introduction.md)
   * [02-Modern SQL](shu-ju-ku/cmu15445/02-modern-sql.md)
   * [hw01-SQL](database/cmu15445/hw01-sql.md)
   * [03-Storage 1](shu-ju-ku/cmu15445/03-storage-1.md)
-  * [从零开始搭建Hexo博客](database/cmu15445/cong-ling-kai-shi-da-jian-hexo-bo-ke.md)
