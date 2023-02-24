@@ -24,7 +24,7 @@ SQLite官网地址
 
 ## 1. 记录步骤
 
-### 1.1 Q1 \[0 points] (q1\_sample):
+### Q1 \[0 points] (q1\_sample):
 
 这个主要就是用来热身的，代码已经给我们了，要求我们按**字母表顺序列出所有类别名称。**
 
@@ -42,7 +42,7 @@ LIMIT 10;
 结果的第一行应为：`Cicak-Man 2: Planet Hitam|2008|999 (mins)`
 
 ```sql
-SELECT primary_title,premiered, CAST(runtime_minutes AS String) || ' (mins)'
+SELECT primary_title,premiered, runtime_minutes || ' (mins)'
 FROM titles
 WHERE genres like '%Sci-Fi%'
 ORDER BY runtime_minutes DESC
@@ -74,3 +74,47 @@ LIMIT 20;
 ```
 
 ### Q4 \[10 points] (q4\_crew\_appears\_most):
+
+找到出现次数最多的 20 名剧组人员，输出姓名和出场次数，按照出场次数降序。
+
+```sql
+WITH temp(count , person_id) AS (
+    SELECT count(*) AS count, person_id
+    FROM crew
+    GROUP BY  person_id
+    ORDER BY  count DESC
+    LIMIT 20
+)
+
+SELECT name, count
+FROM temp JOIN people
+ON temp.person_id = people.person_id
+```
+
+### Q5 \[10 points] (q5\_decade\_ratings):
+
+输出每十年的作品发行量、平均分(四舍五入到两位小数)、最高分、最低分，忽略尚未上映的作品，即 `premiered` 为 `null` 的作品。
+
+打印十年的时候以一种更优雅的方式：如 1990s，输出的时候按照平均分降序，然后再根据年份升序。
+
+```sql
+WITH temp(decade,title_id) AS (
+    SELECT (premiered-premiered%10) AS decade ,title_id
+    FROM titles
+    WHERE premiered IS  NOT NULL
+)
+SELECT decade || 's',round(avg(rating),2) AS avg,max(rating),min(rating),count(1)
+FROM temp
+JOIN ratings ON temp.title_id = ratings.title_id
+GROUP BY decade
+ORDER BY round(avg(rating),2) DESC, decade;
+```
+
+### Q6 \[10 points] (q6\_cruiseing\_altitude):
+
+找到名字包含 "Cruise" 且出生于 1962 年的人参与的票数最高的作品，输出作品名和票数。
+
+列出 10 个按照票数从高到底的顺序。
+
+
+
