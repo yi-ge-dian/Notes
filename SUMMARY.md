@@ -17,5 +17,4 @@
   * [Project2A-RaftKV-Impl](shu-ju-ku/tinykv/project2a-raftkv-impl.md)
   * [Project2B-RaftKV-Impl](shu-ju-ku/tinykv/project2b-raftkv-impl.md)
 * [CMU15445](shu-ju-ku/cmu15445/README.md)
-  * [hw01-SQL](database/cmu15445/hw01-sql.md)
   * [03-Storage 1](shu-ju-ku/cmu15445/03-storage-1.md)

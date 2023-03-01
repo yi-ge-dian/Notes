@@ -28,8 +28,15 @@ git reset --hard xxxx(commit-id)
 git push -f origin master(branch-name) 
 ```
 
-5.  git 修改为
+5. git 修改为
 
-    ```shell
-    git config --global core.autocrlf true
-    ```
+```shell
+git config --global core.autocrlf true
+```
+
+6. 指定 commit 克隆
+
+```bash
+git clone [git-url] -b [branch-name]
+git reset --hard [commit-number]
+```
