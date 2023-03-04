@@ -4,7 +4,7 @@
 
 课程大纲如下：
 
-<figure><img src="../../.gitbook/assets/image (1).png" alt=""><figcaption><p>outline</p></figcaption></figure>
+<figure><img src="../../.gitbook/assets/image (1) (3).png" alt=""><figcaption><p>outline</p></figcaption></figure>
 
 左侧是课程讲解目录，右侧是数据库执行过程。
 
