@@ -24,7 +24,7 @@ aliyun image speedup service
 
 ## docker 的命令
 
-<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption><p>docker command</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (4).png" alt=""><figcaption><p>docker command</p></figcaption></figure>
 
 ### 镜像
 
