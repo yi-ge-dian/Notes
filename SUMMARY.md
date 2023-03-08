@@ -20,7 +20,3 @@
 ## ☁ Cloud Native
 
 * [Docker](cloud-native/docker.md)
-
-***
-
-* [Page 1](page-1.md)
