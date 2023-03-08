@@ -85,3 +85,58 @@ Conclusion
 日志结构化存储是我们上节课讨论的面向页面的体系结构（面向元组）的一种替代方法。
 
 存储管理器并非完全独立于DBMS的其余部分。
+
+
+
+
+
+
+
+
+
+Database Workloads
+
+On-Line Transaction Processing (OLTP)：联机事务处理
+
+每次只读取/更新少量数据的快速操作
+
+On-Line Analytical Processing (OLAP)：联机分析处理
+
+读取大量数据以计算聚合的复杂查询
+
+Hybrid Transaction + Analytical Processing：混合事务分析处理
+
+同一个数据库实例中，既有oltp又有olap
+
+图
+
+Observation
+
+关系模型没有指定DBMS必须将元组的所有属性一起存储在一个页面中。
+
+这实际上可能不是某些工作负载的最佳布局…
+
+OLTP：
+
+→ 读取/更新与数据库中单个实体相关的少量数据的简单查询。
+
+这通常是人们首先构建的应用程序
+
+图
+
+OLAP：
+
+→ 读取跨越多个实体的数据库的大部分的复杂查询。
+
+您可以在从OLTP应用程序收集的数据上执行这些工作负载。
+
+Database Storage Models
+
+DBMS可以以不同的方式存储元组，这对于OLTP或OLAP工作负载更好。
+
+本学期到目前为止，我们一直在假设n元存储模型（也称为“行存储”）。
+
+
+
+
+
